@@ -2,18 +2,24 @@ package dk.trustworks.clientmanager.persistence;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.trustworks.framework.persistence.GenericRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by hans on 17/03/15.
  */
 public class TaskRepository extends GenericRepository {
+
+    private static final Logger logger = LogManager.getLogger();
 
     public TaskRepository() {
         super();
@@ -54,7 +60,7 @@ public class TaskRepository extends GenericRepository {
     }
 
     public void create(JsonNode jsonNode) throws SQLException {
-        System.out.println("Create task: "+jsonNode);
+        logger.debug("Create task: "+jsonNode);
         testForNull(jsonNode, new String[]{"projectuuid"});
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO task (uuid, type, name, projectuuid) VALUES (?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -68,7 +74,7 @@ public class TaskRepository extends GenericRepository {
     }
 
     public void update(JsonNode jsonNode, String uuid) throws SQLException {
-        System.out.println("Update task: "+jsonNode);
+        logger.debug("Update task: "+jsonNode);
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("UPDATE task t SET t.type = ?, t.name = ? WHERE t.uuid LIKE ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         stmt.setString(1, jsonNode.get("type").asText("KONSULENT"));

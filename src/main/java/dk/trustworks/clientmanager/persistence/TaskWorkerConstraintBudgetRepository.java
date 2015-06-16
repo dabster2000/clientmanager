@@ -2,6 +2,8 @@ package dk.trustworks.clientmanager.persistence;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.trustworks.framework.persistence.GenericRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 import java.time.Instant;
@@ -15,13 +17,15 @@ import java.util.UUID;
  */
 public class TaskWorkerConstraintBudgetRepository extends GenericRepository {
 
+    private static final Logger log = LogManager.getLogger();
+
     public TaskWorkerConstraintBudgetRepository() {
         super();
     }
 
     public List<Map<String, Object>> findByTaskWorkerConstraintUUID(String taskWorkerConstraintUUID) {
-        System.out.println("TaskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUID");
-        System.out.println("taskWorkerConstraintUUID = " + taskWorkerConstraintUUID);
+        log.debug("TaskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUID");
+        log.debug("taskWorkerConstraintUUID = " + taskWorkerConstraintUUID);
         List<Map<String, Object>> result = new ArrayList<>();
         try {
             Connection connection = database.getConnection();
@@ -41,14 +45,42 @@ public class TaskWorkerConstraintBudgetRepository extends GenericRepository {
             stmt.close();
             connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("LOG00220:", e);
+        }
+        return result;
+    }
+
+    public List<Map<String, Object>> findByMonthAndYear(int month, int year) {
+        log.debug("TaskWorkerConstraintBudgetRepository.findByMonthAndYear");
+        log.debug("month = [" + month + "], year = [" + year + "]");
+        List<Map<String, Object>> result = new ArrayList<>();
+        try {
+            Connection connection = database.getConnection();
+            PreparedStatement stmt = connection.prepareStatement("" +
+                    "select yt.month, yt.year, yt.created, yt.budget, yt.taskworkerconstraintuuid " +
+                    "from taskworkerconstraintbudget yt " +
+                    "inner join( " +
+                    "select uuid, month, year, taskworkerconstraintuuid, max(created) created " +
+                    "from taskworkerconstraintbudget WHERE month = ? and year = ? " +
+                    "group by taskworkerconstraintuuid " +
+                    ") ss on yt.created = ss.created and yt.taskworkerconstraintuuid = ss.taskworkerconstraintuuid;"
+                    , ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            stmt.setInt(1, month);
+            stmt.setInt(2, year);
+            ResultSet resultSet = stmt.executeQuery();
+            result = getEntitiesFromResultSet(resultSet);
+            resultSet.close();
+            stmt.close();
+            connection.close();
+        } catch (SQLException e) {
+            log.error("LOG00210:", e);
         }
         return result;
     }
 
     public List<Map<String, Object>> findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(String taskWorkerConstraintUUID, int month, int year, Instant ldt) {
-        System.out.println("TaskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUID");
-        System.out.println("taskWorkerConstraintUUID = [" + taskWorkerConstraintUUID + "], ldt = [" + ldt + "]");
+        log.debug("TaskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUID");
+        log.debug("taskWorkerConstraintUUID = [" + taskWorkerConstraintUUID + "], ldt = [" + ldt + "]");
         List<Map<String, Object>> result = new ArrayList<>();
         try {
             Connection connection = database.getConnection();
@@ -71,12 +103,16 @@ public class TaskWorkerConstraintBudgetRepository extends GenericRepository {
             stmt.close();
             connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("LOG00230:", e);
         }
+        log.entry(result);
         return result;
     }
 
     public double calculateTotalTaskBudget(String taskUUID) {
+        log.debug("TaskWorkerConstraintBudgetRepository.calculateTotalTaskBudget");
+        log.debug("taskUUID = [" + taskUUID + "]");
+
         double result = 0.0;
         try {
             Connection connection = database.getConnection();
@@ -99,13 +135,16 @@ public class TaskWorkerConstraintBudgetRepository extends GenericRepository {
             stmt.close();
             connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("LOG00240:", e);
         }
+        log.exit(result);
         return result;
     }
 
     public void create(JsonNode jsonNode) throws SQLException {
-        System.out.println("Create taskworkerconstraintbudget: " + jsonNode);
+        log.entry(jsonNode);
+        log.debug("TaskWorkerConstraintBudgetRepository.create");
+        log.debug("jsonNode = [" + jsonNode + "]");
         //testForNull(jsonNode, new String[]{"taskworkerconstraintuuid", "month", "year", "version"});
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO taskworkerconstraintbudget (uuid, budget, month, year, taskworkerconstraintuuid, created) VALUES (?, ?, ?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -118,11 +157,13 @@ public class TaskWorkerConstraintBudgetRepository extends GenericRepository {
         stmt.executeUpdate();
         stmt.close();
         connection.close();
-        System.out.println("saved!");
+        log.exit();
     }
 
     public void update(JsonNode jsonNode, String uuid) throws SQLException {
-        System.out.println("Update taskworkerconstraintbudget: "+jsonNode);
+        log.entry(jsonNode, uuid);
+        log.debug("Update taskworkerconstraintbudget: " + jsonNode);
+        log.error("LOG00250: NOT ALLOWED");
         throw new RuntimeException("Not allowed");
         /*
         testForNull(jsonNode, new String[]{"taskWorkerConstraintUUID", "budget"});

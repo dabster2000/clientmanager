@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dk.trustworks.clientmanager.persistence.ProjectRepository;
 import dk.trustworks.framework.persistence.GenericRepository;
 import dk.trustworks.framework.service.DefaultLocalService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 import java.util.Deque;
@@ -14,6 +16,8 @@ import java.util.Map;
  * Created by hans on 17/03/15.
  */
 public class ProjectService extends DefaultLocalService {
+
+    private static final Logger logger = LogManager.getLogger();
 
     private ProjectRepository projectRepository;
 
@@ -49,13 +53,13 @@ public class ProjectService extends DefaultLocalService {
 
     @Override
     public void create(JsonNode jsonNode) throws SQLException {
-        System.out.println("ProjectService.create");
+        logger.debug("ProjectService.create");
         projectRepository.create(jsonNode);
     }
 
     @Override
     public void update(JsonNode jsonNode, String uuid) throws SQLException {
-        System.out.println("ProjectService.update");
+        logger.debug("ProjectService.update");
         projectRepository.update(jsonNode, uuid);
     }
 

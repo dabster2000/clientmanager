@@ -2,27 +2,32 @@ package dk.trustworks.clientmanager.persistence;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.trustworks.framework.persistence.GenericRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import javax.sql.DataSource;
 import java.sql.*;
-import java.sql.Date;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by hans on 17/03/15.
  */
 public class ClientRepository extends GenericRepository {
 
+    private static final Logger logger = LogManager.getLogger();
+
     public ClientRepository() {
         super();
     }
 
     public List<Map<String, Object>> findByActiveTrue() {
-        System.out.println("client.findByActiveTrue()");
+        logger.debug("client.findByActiveTrue()");
         List<Map<String, Object>> result = new ArrayList<>();
         try {
             Connection connection = database.getConnection();
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM client WHERE active = TRUE", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM client WHERE active = TRUE ORDER BY name ASC", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             ResultSet resultSet = stmt.executeQuery();
             result = getEntitiesFromResultSet(resultSet);
             resultSet.close();
@@ -35,7 +40,7 @@ public class ClientRepository extends GenericRepository {
     }
 
     public List<Map<String, Object>> findByActiveTrueOrderByNameAsc() {
-        System.out.println("ClientRepository.findByActiveTrueOrderByNameAsc");
+        logger.debug("ClientRepository.findByActiveTrueOrderByNameAsc");
         List<Map<String, Object>> result = new ArrayList<>();
         try {
             Connection connection = database.getConnection();
@@ -52,7 +57,7 @@ public class ClientRepository extends GenericRepository {
     }
 
     public void create(JsonNode jsonNode) throws SQLException {
-        System.out.println("Create client: "+jsonNode);
+        logger.debug("Create client: "+jsonNode);
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO client (uuid, active, contactname, created, name) VALUES (?, ?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         if(jsonNode.get("uuid").asText() != "") stmt.setString(1, jsonNode.get("uuid").asText());
@@ -67,7 +72,7 @@ public class ClientRepository extends GenericRepository {
     }
 
     public void update(JsonNode jsonNode, String uuid) throws SQLException {
-        System.out.println("Update client: "+jsonNode);
+        logger.debug("Update client: "+jsonNode);
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("UPDATE client SET active = ?, contactname = ?, name = ? WHERE uuid LIKE ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         stmt.setBoolean(1, jsonNode.get("active").asBoolean());

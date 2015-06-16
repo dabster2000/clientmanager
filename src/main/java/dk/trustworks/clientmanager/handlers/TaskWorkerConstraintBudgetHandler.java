@@ -7,6 +7,8 @@ import dk.trustworks.clientmanager.service.TaskWorkerConstraintBudgetService;
 import dk.trustworks.framework.server.DefaultHandler;
 import dk.trustworks.framework.service.DefaultLocalService;
 import io.undertow.server.HttpServerExchange;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +18,7 @@ import java.util.Map;
  */
 public class TaskWorkerConstraintBudgetHandler extends DefaultHandler {
 
+    private static final Logger log = LogManager.getLogger(TaskWorkerConstraintBudgetHandler.class);
     private final TaskWorkerConstraintBudgetService taskWorkerConstraintBudgetService;
     private final TaskWorkerConstraintBudgetRepository taskWorkerConstraintBudgetRepository;
 
@@ -27,8 +30,8 @@ public class TaskWorkerConstraintBudgetHandler extends DefaultHandler {
     }
 
     public void calculatetotalbudget (HttpServerExchange exchange, String[] params) {
-        System.out.println("TaskWorkerConstraintBudgetHandler.calculatetotalbudget");
-        System.out.println("exchange = [" + exchange + "], params = [" + params + "]");
+        log.debug("TaskWorkerConstraintBudgetHandler.calculatetotalbudget");
+        log.debug("exchange = [" + exchange + "], params = [" + params + "]");
         double totalWorkDuration = taskWorkerConstraintBudgetRepository.calculateTotalTaskBudget(exchange.getQueryParameters().get("taskuuid").getFirst());
         Map<String, Object> result = new HashMap<>();
         result.put("totalworkduration", totalWorkDuration);

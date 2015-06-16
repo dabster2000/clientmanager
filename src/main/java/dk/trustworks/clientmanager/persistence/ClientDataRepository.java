@@ -2,6 +2,8 @@ package dk.trustworks.clientmanager.persistence;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.trustworks.framework.persistence.GenericRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,6 +18,8 @@ import java.util.UUID;
  * Created by hans on 17/03/15.
  */
 public class ClientDataRepository extends GenericRepository {
+
+    private static final Logger logger = LogManager.getLogger();
 
     public ClientDataRepository() {
         super();
@@ -39,7 +43,8 @@ public class ClientDataRepository extends GenericRepository {
     }
 
     public void create(JsonNode jsonNode) throws SQLException {
-        System.out.println("Create clientData: "+jsonNode);
+        logger.debug("ClientDataRepository.create");
+        logger.debug("jsonNode = [" + jsonNode + "]");
         testForNull(jsonNode, new String[]{"clientuuid", "clientname"});
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO clientdata (uuid, city, clientuuid, clientname, contactperson, cvr, ean, otheraddressinfo, postalcode, streetnamenumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -59,8 +64,8 @@ public class ClientDataRepository extends GenericRepository {
     }
 
     public void update(JsonNode jsonNode, String uuid) throws SQLException {
-        System.out.println("Update clientData: "+jsonNode);
-        //testForNull(jsonNode, new String[]{"clientname"});
+        logger.debug("ClientDataRepository.update");
+        logger.debug("jsonNode = [" + jsonNode + "], uuid = [" + uuid + "]");
         // TODO: This does not work!
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("UPDATE clientdata SET city = ?, clientname = ?, contactperson = ?, cvr = ?, ean = ?, otheraddressinfo = ?, postalcode = ?, streetnamenumber  = ? WHERE uuid LIKE ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);

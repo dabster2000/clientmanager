@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dk.trustworks.clientmanager.persistence.TaskWorkerConstraintBudgetRepository;
 import dk.trustworks.framework.persistence.GenericRepository;
 import dk.trustworks.framework.service.DefaultLocalService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 import java.time.Instant;
@@ -16,18 +18,27 @@ import java.util.Map;
  */
 public class TaskWorkerConstraintBudgetService extends DefaultLocalService {
 
+    private static final Logger logger = LogManager.getLogger();
+
     private TaskWorkerConstraintBudgetRepository taskWorkerConstraintBudgetRepository;
 
     public TaskWorkerConstraintBudgetService() { taskWorkerConstraintBudgetRepository = new TaskWorkerConstraintBudgetRepository(); }
 
     public List<Map<String, Object>> findByTaskWorkerConstraintUUID(Map<String, Deque<String>> queryParameters) {
-        System.out.println("TaskWorkerConstraintBudgetService.findByTaskWorkerConstraintUUID");
+        logger.debug("TaskWorkerConstraintBudgetService.findByTaskWorkerConstraintUUID");
         String taskworkerconstraintuuid = queryParameters.get("taskworkerconstraintuuid").getFirst();
         return taskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUID(taskworkerconstraintuuid);
     }
 
+    public List<Map<String, Object>> findByMonthAndYear(Map<String, Deque<String>> queryParameters) {
+        logger.debug("TaskWorkerConstraintBudgetService.findByTaskWorkerConstraintUUIDAndMonthAndYear");
+        int month = Integer.parseInt(queryParameters.get("month").getFirst());
+        int year = Integer.parseInt(queryParameters.get("year").getFirst());
+        return taskWorkerConstraintBudgetRepository.findByMonthAndYear(month, year);
+    }
+
     public List<Map<String, Object>> findByTaskWorkerConstraintUUIDAndDate(Map<String, Deque<String>> queryParameters) {
-        System.out.println("TaskWorkerConstraintBudgetService.findByTaskWorkerConstraintUUIDAndDate");
+        logger.debug("TaskWorkerConstraintBudgetService.findByTaskWorkerConstraintUUIDAndDate");
         String taskworkerconstraintuuid = queryParameters.get("taskworkerconstraintuuid").getFirst();
         int month = Integer.parseInt(queryParameters.get("month").getFirst());
         int year = Integer.parseInt(queryParameters.get("year").getFirst());
@@ -52,6 +63,6 @@ public class TaskWorkerConstraintBudgetService extends DefaultLocalService {
 
     @Override
     public String getResourcePath() {
-        return "taskWorkerConstraintBudgets";
+        return "taskworkerconstraintbudget";
     }
 }

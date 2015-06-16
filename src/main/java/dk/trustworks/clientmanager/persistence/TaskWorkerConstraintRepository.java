@@ -2,6 +2,8 @@ package dk.trustworks.clientmanager.persistence;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.trustworks.framework.persistence.GenericRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,6 +15,8 @@ import java.util.*;
  * Created by hans on 17/03/15.
  */
 public class TaskWorkerConstraintRepository extends GenericRepository {
+
+    private static final Logger logger = LogManager.getLogger();
 
     public TaskWorkerConstraintRepository() {
         super();
@@ -30,14 +34,14 @@ public class TaskWorkerConstraintRepository extends GenericRepository {
             stmt.close();
             connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("LOG00200:", e);
         }
         return result;
     }
 
     public Map<String, Object> findByTaskUUIDAndUserUUID(String taskUUID, String userUUID) {
-        System.out.println("TaskWorkerConstraintRepository.findByTaskUUIDAndUserUUID");
-        System.out.println("taskUUID = [" + taskUUID + "], userUUID = [" + userUUID + "]");
+        logger.debug("TaskWorkerConstraintRepository.findByTaskUUIDAndUserUUID");
+        logger.debug("taskUUID = [" + taskUUID + "], userUUID = [" + userUUID + "]");
         Map<String, Object> result = new HashMap<>();
         try {
             Connection connection = database.getConnection();
@@ -45,20 +49,24 @@ public class TaskWorkerConstraintRepository extends GenericRepository {
             stmt.setString(1, taskUUID);
             stmt.setString(2, userUUID);
             ResultSet resultSet = stmt.executeQuery();
-            System.out.println("resultSet.isAfterLast() = " + resultSet.next());
+            logger.debug("resultSet.isAfterLast() = " + resultSet.next());
             result = getEntityFromResultSet(resultSet);
-            System.out.println("result = " + result);
+            logger.debug("result = " + result);
             resultSet.close();
             stmt.close();
             connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("LOG00190:", e);
+            result.put("price", 0.0);
+            result.put("taskuuid", taskUUID);
+            result.put("useruuid", userUUID);
+            result.put("uuid", "");
         }
         return result;
     }
 
     public void create(JsonNode jsonNode) throws SQLException {
-        System.out.println("Create taskworkerconstraint: "+jsonNode);
+        logger.debug("Create taskworkerconstraint: "+jsonNode);
         testForNull(jsonNode, new String[]{"taskuuid", "useruuid"});
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO taskworkerconstraint (uuid, price, taskuuid, useruuid) VALUES (?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -72,7 +80,7 @@ public class TaskWorkerConstraintRepository extends GenericRepository {
     }
 
     public void update(JsonNode jsonNode, String uuid) throws SQLException {
-        System.out.println("Update taskworkerconstraint: "+jsonNode);
+        logger.debug("Update taskworkerconstraint: "+jsonNode);
         Connection connection = database.getConnection();
         PreparedStatement stmt = connection.prepareStatement("UPDATE taskworkerconstraint SET price = ? WHERE uuid LIKE ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         stmt.setDouble(1, jsonNode.get("price").asDouble());

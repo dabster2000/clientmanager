@@ -2,10 +2,12 @@ package dk.trustworks.clientmanager.persistence;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.trustworks.framework.persistence.GenericRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import javax.sql.DataSource;
 import java.sql.*;
 import java.sql.Date;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -13,6 +15,8 @@ import java.util.*;
  * Created by hans on 17/03/15.
  */
 public class ProjectRepository extends GenericRepository {
+
+    private static final Logger logger = LogManager.getLogger();
 
     public ProjectRepository() {
         super();
@@ -119,12 +123,12 @@ public class ProjectRepository extends GenericRepository {
     }
 
     public void create(JsonNode jsonNode) {
-        System.out.println("Create project: " + jsonNode);
+        logger.debug("Create project: " + jsonNode);
         testForNull(jsonNode, new String[]{"clientuuid", "clientdatauuid"});
-        System.out.println("ProjectRepository.create");
+        logger.debug("ProjectRepository.create");
         try {
             Connection connection = database.getConnection();
-            PreparedStatement stmt = connection.prepareStatement("INSERT INTO project (uuid, active, budget, clientuuid, created, customerreference, name, userowneruuid, clientdatauuid, startDate, endDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            PreparedStatement stmt = connection.prepareStatement("INSERT INTO project (uuid, active, budget, clientuuid, created, customerreference, name, userowneruuid, clientdatauuid, startdate, enddate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             stmt.setString(1, (jsonNode.get("uuid").asText() != "") ? jsonNode.get("uuid").asText() : UUID.randomUUID().toString());
             stmt.setBoolean(2, (jsonNode.get("active").asBoolean(true)));
             stmt.setDouble(3, (jsonNode.get("budget").asText() != "") ? jsonNode.get("budget").asDouble() : 0.0);
@@ -147,8 +151,30 @@ public class ProjectRepository extends GenericRepository {
         }
     }
 
-    public void update(JsonNode jsonNode, String uuid) throws SQLException {
-        System.out.println("Update project: "+jsonNode);
+    public void update(JsonNode jsonNode, String uuid)  {
+        logger.debug("Update project: "+jsonNode);
+
+        try {
+            Connection connection = database.getConnection();
+            PreparedStatement stmt = connection.prepareStatement("UPDATE project p SET p.active = ?, p.budget = ?, p.customerreference = ?, p.name = ?, p.userowneruuid = ?, p.startdate = ?, p.enddate = ? WHERE p.uuid LIKE ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            stmt.setString(1, jsonNode.get("active").asText());
+            stmt.setDouble(2, jsonNode.get("budget").asDouble(0.0));
+            stmt.setString(3, jsonNode.get("customerreference").asText());
+            stmt.setString(4, jsonNode.get("name").asText());
+            stmt.setString(5, jsonNode.get("userowneruuid").asText());
+            stmt.setDate(6, new Date(new SimpleDateFormat("yyyy-MM-dd").parse(jsonNode.get("startdate").asText()).getTime()));
+            stmt.setDate(7, new Date(new SimpleDateFormat("yyyy-MM-dd").parse(jsonNode.get("enddate").asText()).getTime()));
+            stmt.setString(8, jsonNode.get("uuid").asText());
+            stmt.executeUpdate();
+            stmt.close();
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+/*
         Connection connection = database.getConnection();
 
         String sql = "UPDATE project p SET ";
@@ -171,11 +197,15 @@ public class ProjectRepository extends GenericRepository {
         while(fields.hasNext()) {
             Map.Entry<String, JsonNode> entry = fields.next();
             if(entry.getKey().equals("uuid")) continue;
-            stmt.setString(i++, entry.getValue().asText());
+            else if(entry.getKey().equals("created")) continue;
+            //else if(entry.getKey().equals("budget")) stmt.setDouble(i++, entry.getValue().asDouble());
+            //else if(entry.getKey().equals("enddate") || entry.getKey().equals("startdate")));
+            else stmt.setString(i++, entry.getValue().asText());
         }
         stmt.setString(i, uuid);
         stmt.executeUpdate();
         stmt.close();
         connection.close();
+*/
     }
 }

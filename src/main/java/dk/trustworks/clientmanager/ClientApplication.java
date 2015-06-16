@@ -2,10 +2,7 @@ package dk.trustworks.clientmanager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.trustworks.clientmanager.handlers.*;
-import dk.trustworks.clientmanager.service.ClientService;
-import dk.trustworks.clientmanager.service.ProjectService;
-import dk.trustworks.clientmanager.service.TaskService;
-import dk.trustworks.clientmanager.service.UserService;
+import dk.trustworks.clientmanager.service.*;
 import dk.trustworks.framework.persistence.Helper;
 import dk.trustworks.framework.service.ServiceRegistry;
 import io.undertow.Handlers;
@@ -18,6 +15,8 @@ import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.UriSpec;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xnio.Options;
 
 import java.io.InputStream;
@@ -28,12 +27,14 @@ import java.util.Properties;
  */
 public class ClientApplication {
 
+    private static final Logger log = LogManager.getLogger();
+
     public static void main(String[] args) throws Exception {
         new ClientApplication(Integer.parseInt(args[0]));
     }
 
     public ClientApplication(int port) throws Exception {
-        System.out.println("ClientManager on port " + port);
+        log.info("ClientManager on port " + port);
         Class.forName("org.mariadb.jdbc.Driver");
         Properties properties = new Properties();
         try (InputStream in = Helper.class.getResourceAsStream("server.properties")) {
@@ -43,6 +44,7 @@ public class ClientApplication {
 
         ServiceRegistry serviceRegistry = ServiceRegistry.getInstance();
 
+        serviceRegistry.registerService("taskworkerconstraintuuid", new TaskWorkerConstraintService());
         serviceRegistry.registerService("taskuuid", new TaskService());
         serviceRegistry.registerService("projectuuid", new ProjectService());
         serviceRegistry.registerService("clientuuid", new ClientService());
