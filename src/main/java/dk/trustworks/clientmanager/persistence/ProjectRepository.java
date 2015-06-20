@@ -5,7 +5,6 @@ import dk.trustworks.framework.persistence.GenericRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.sql.*;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,8 +22,16 @@ public class ProjectRepository extends GenericRepository {
     }
 
     public List<Map<String, Object>> findByOrderByNameAsc() {
-        List<Map<String, Object>> result = new ArrayList<>();
-        try {
+        logger.debug("ProjectRepository.findByOrderByNameAsc");
+        try (org.sql2o.Connection con = database.open()) {
+            return getEntitiesFromMapSet(con.createQuery("SELECT * FROM project ORDER BY name ASC").executeAndFetchTable().asList());
+        } catch (Exception e) {
+            logger.error("LOG00350:", e);
+        }
+        return new ArrayList<>();
+        //try {
+            //List<Map<String, Object>> result = new ArrayList<>();
+            /*
             Connection connection = database.getConnection();
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM project ORDER BY name ASC", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             ResultSet resultSet = stmt.executeQuery();
@@ -36,10 +43,19 @@ public class ProjectRepository extends GenericRepository {
             e.printStackTrace();
         }
         return result;
+        */
     }
 
     public List<Map<String, Object>> findByActiveTrueOrderByNameAsc() {
-        List<Map<String, Object>> result = new ArrayList<>();
+        logger.debug("ProjectRepository.findByActiveTrueOrderByNameAsc");
+        try (org.sql2o.Connection con = database.open()) {
+            return getEntitiesFromMapSet(con.createQuery("SELECT * FROM project WHERE active = TRUE ORDER BY name ASC").executeAndFetchTable().asList());
+        } catch (Exception e) {
+            logger.error("LOG00360:", e);
+        }
+        return new ArrayList<>();
+/*
+            List<Map<String, Object>> result = new ArrayList<>();
         try {
             Connection connection = database.getConnection();
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM project WHERE active = TRUE ORDER BY name ASC", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -51,10 +67,19 @@ public class ProjectRepository extends GenericRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return result;
+        return result;*/
     }
 
     public List<Map<String, Object>> findByClientUUID(String clientUUID) {
+        logger.debug("ProjectRepository.findByClientUUID");
+        logger.debug("clientUUID = [" + clientUUID + "]");
+        try (org.sql2o.Connection con = database.open()) {
+            return getEntitiesFromMapSet(con.createQuery("SELECT * FROM project WHERE clientuuid LIKE :clientuuid").addParameter("clientuuid", clientUUID).executeAndFetchTable().asList());
+        } catch (Exception e) {
+            logger.error("LOG00370:", e);
+        }
+        return new ArrayList<>();
+        /*
         List<Map<String, Object>> result = new ArrayList<>();
         try {
             Connection connection = database.getConnection();
@@ -69,9 +94,19 @@ public class ProjectRepository extends GenericRepository {
             e.printStackTrace();
         }
         return result;
+        */
     }
 
     public List<Map<String, Object>> findByClientUUIDAndActiveTrue(String clientUUID) {
+        logger.debug("ProjectRepository.findByClientUUIDAndActiveTrue");
+        logger.debug("clientUUID = [" + clientUUID + "]");
+        try (org.sql2o.Connection con = database.open()) {
+            return getEntitiesFromMapSet(con.createQuery("SELECT * FROM project WHERE clientuuid LIKE :clientuuid AND active = TRUE").addParameter("clientuuid", clientUUID).executeAndFetchTable().asList());
+        } catch (Exception e) {
+            logger.error("LOG00380:", e);
+        }
+        return new ArrayList<>();
+        /*
         List<Map<String, Object>> result = new ArrayList<>();
         try {
             Connection connection = database.getConnection();
@@ -86,9 +121,19 @@ public class ProjectRepository extends GenericRepository {
             e.printStackTrace();
         }
         return result;
+        */
     }
 
     public List<Map<String, Object>> findByClientUUIDOrderByNameAsc(String clientUUID) {
+        logger.debug("ProjectRepository.findByClientUUIDOrderByNameAsc");
+        logger.debug("clientUUID = [" + clientUUID + "]");
+        try (org.sql2o.Connection con = database.open()) {
+            return getEntitiesFromMapSet(con.createQuery("SELECT * FROM project WHERE clientuuid LIKE :clientuuid ORDER BY name ASC").addParameter("clientuuid", clientUUID).executeAndFetchTable().asList());
+        } catch (Exception e) {
+            logger.error("LOG00390:", e);
+        }
+        return new ArrayList<>();
+        /*
         List<Map<String, Object>> result = new ArrayList<>();
         try {
             Connection connection = database.getConnection();
@@ -103,9 +148,19 @@ public class ProjectRepository extends GenericRepository {
             e.printStackTrace();
         }
         return result;
+        */
     }
 
     public List<Map<String, Object>> findByClientUUIDAndActiveTrueOrderByNameAsc(String clientUUID) {
+        logger.debug("ProjectRepository.findByClientUUIDAndActiveTrueOrderByNameAsc");
+        logger.debug("clientUUID = [" + clientUUID + "]");
+        try (org.sql2o.Connection con = database.open()) {
+            return getEntitiesFromMapSet(con.createQuery("SELECT * FROM project WHERE clientuuid LIKE :clientuuid AND active = TRUE ORDER BY name ASC").addParameter("clientuuid", clientUUID).executeAndFetchTable().asList());
+        } catch (Exception e) {
+            logger.error("LOG00400:", e);
+        }
+        return new ArrayList<>();
+        /*
         List<Map<String, Object>> result = new ArrayList<>();
         try {
             Connection connection = database.getConnection();
@@ -120,12 +175,33 @@ public class ProjectRepository extends GenericRepository {
             e.printStackTrace();
         }
         return result;
+        */
     }
 
     public void create(JsonNode jsonNode) {
-        logger.debug("Create project: " + jsonNode);
-        testForNull(jsonNode, new String[]{"clientuuid", "clientdatauuid"});
         logger.debug("ProjectRepository.create");
+        logger.debug("jsonNode = [" + jsonNode + "]");
+        testForNull(jsonNode, new String[]{"clientuuid", "clientdatauuid"});
+        try (org.sql2o.Connection con = database.open()) {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MONTH, 4);
+            con.createQuery("INSERT INTO project (uuid, active, budget, clientuuid, created, customerreference, name, userowneruuid, clientdatauuid, startdate, enddate) VALUES (:uuid, :active, :budget, :clientuuid, :created, :customerreference, :name, :userowneruuid, :clientdatauuid, :startdate, :enddate)")
+                    .addParameter("uuid", jsonNode.get("uuid").asText(UUID.randomUUID().toString()))
+                    .addParameter("active", jsonNode.get("active").asBoolean(true))
+                    .addParameter("budget", jsonNode.get("budget").asDouble(0.0))
+                    .addParameter("clientuuid", jsonNode.get("clientuuid").asText())
+                    .addParameter("created", new Date(new java.util.Date().getTime()))
+                    .addParameter("customerreference", jsonNode.get("customerreference").asText())
+                    .addParameter("name", jsonNode.get("name").asText())
+                    .addParameter("userowneruuid", jsonNode.get("userowneruuid").asText())
+                    .addParameter("clientdatauuid", jsonNode.get("clientdatauuid").asText())
+                    .addParameter("startdata", (jsonNode.get("startdate").asText(new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()))))
+                    .addParameter("enddata", (jsonNode.get("enddate").asText(new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime()))))
+                    .executeUpdate();
+        } catch (Exception e) {
+            logger.error("LOG00410:", e);
+        }
+        /*
         try {
             Connection connection = database.getConnection();
             PreparedStatement stmt = connection.prepareStatement("INSERT INTO project (uuid, active, budget, clientuuid, created, customerreference, name, userowneruuid, clientdatauuid, startdate, enddate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -149,11 +225,28 @@ public class ProjectRepository extends GenericRepository {
             e.printStackTrace();
             throw new RuntimeException("Kunne ikke gemme projekt: "+jsonNode, e);
         }
+        */
     }
 
     public void update(JsonNode jsonNode, String uuid)  {
-        logger.debug("Update project: "+jsonNode);
+        logger.debug("ProjectRepository.update");
+        logger.debug("jsonNode = [" + jsonNode + "], uuid = [" + uuid + "]");
 
+        try (org.sql2o.Connection con = database.open()) {
+            con.createQuery("UPDATE project p SET p.active = :active, p.budget = :budget, p.customerreference = :customerreference, p.name = :name, p.userowneruuid = :userowneruuid, p.startdate = :startdate, p.enddate = :enddate WHERE p.uuid LIKE :uuid")
+                    .addParameter("active", jsonNode.get("active").asBoolean(true))
+                    .addParameter("budget", jsonNode.get("budget").asDouble(0.0))
+                    .addParameter("customerreference", jsonNode.get("customerreference").asText())
+                    .addParameter("name", jsonNode.get("name").asText())
+                    .addParameter("userowneruuid", jsonNode.get("userowneruuid").asText())
+                    .addParameter("startdata", new Date(new SimpleDateFormat("yyyy-MM-dd").parse(jsonNode.get("startdate").asText()).getTime()))
+                    .addParameter("enddata", new Date(new SimpleDateFormat("yyyy-MM-dd").parse(jsonNode.get("enddate").asText()).getTime()))
+                    .addParameter("uuid", jsonNode.get("uuid").asText(UUID.randomUUID().toString()))
+                    .executeUpdate();
+        } catch (ParseException e) {
+            logger.error("LOG00420:", e);
+        }
+/*
         try {
             Connection connection = database.getConnection();
             PreparedStatement stmt = connection.prepareStatement("UPDATE project p SET p.active = ?, p.budget = ?, p.customerreference = ?, p.name = ?, p.userowneruuid = ?, p.startdate = ?, p.enddate = ? WHERE p.uuid LIKE ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
