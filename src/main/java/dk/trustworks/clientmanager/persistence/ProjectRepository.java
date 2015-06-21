@@ -6,7 +6,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.Date;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -179,8 +178,8 @@ public class ProjectRepository extends GenericRepository {
     }
 
     public void create(JsonNode jsonNode) {
-        logger.debug("ProjectRepository.create");
-        logger.debug("jsonNode = [" + jsonNode + "]");
+        logger.info("ProjectRepository.create");
+        logger.info("jsonNode = [" + jsonNode + "]");
         testForNull(jsonNode, new String[]{"clientuuid", "clientdatauuid"});
         try (org.sql2o.Connection con = database.open()) {
             Calendar cal = Calendar.getInstance();
@@ -195,8 +194,8 @@ public class ProjectRepository extends GenericRepository {
                     .addParameter("name", jsonNode.get("name").asText())
                     .addParameter("userowneruuid", jsonNode.get("userowneruuid").asText())
                     .addParameter("clientdatauuid", jsonNode.get("clientdatauuid").asText())
-                    .addParameter("startdata", (jsonNode.get("startdate").asText(new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()))))
-                    .addParameter("enddata", (jsonNode.get("enddate").asText(new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime()))))
+                    .addParameter("startdate", (jsonNode.get("startdate").asText(new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()))))
+                    .addParameter("enddate", (jsonNode.get("enddate").asText(new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime()))))
                     .executeUpdate();
         } catch (Exception e) {
             logger.error("LOG00410:", e);
@@ -229,8 +228,8 @@ public class ProjectRepository extends GenericRepository {
     }
 
     public void update(JsonNode jsonNode, String uuid)  {
-        logger.debug("ProjectRepository.update");
-        logger.debug("jsonNode = [" + jsonNode + "], uuid = [" + uuid + "]");
+        logger.info("ProjectRepository.update");
+        logger.info("jsonNode = [" + jsonNode + "], uuid = [" + uuid + "]");
 
         try (org.sql2o.Connection con = database.open()) {
             con.createQuery("UPDATE project p SET p.active = :active, p.budget = :budget, p.customerreference = :customerreference, p.name = :name, p.userowneruuid = :userowneruuid, p.startdate = :startdate, p.enddate = :enddate WHERE p.uuid LIKE :uuid")
@@ -238,12 +237,12 @@ public class ProjectRepository extends GenericRepository {
                     .addParameter("budget", jsonNode.get("budget").asDouble(0.0))
                     .addParameter("customerreference", jsonNode.get("customerreference").asText())
                     .addParameter("name", jsonNode.get("name").asText())
-                    .addParameter("userowneruuid", jsonNode.get("userowneruuid").asText())
-                    .addParameter("startdata", new Date(new SimpleDateFormat("yyyy-MM-dd").parse(jsonNode.get("startdate").asText()).getTime()))
-                    .addParameter("enddata", new Date(new SimpleDateFormat("yyyy-MM-dd").parse(jsonNode.get("enddate").asText()).getTime()))
-                    .addParameter("uuid", jsonNode.get("uuid").asText(UUID.randomUUID().toString()))
+                    .addParameter("userowneruuid", jsonNode.get("userowneruuid").asText(""))
+                    .addParameter("startdate", new Date(new SimpleDateFormat("yyyy-MM-dd").parse(jsonNode.get("startdate").asText()).getTime()))
+                    .addParameter("enddate", new Date(new SimpleDateFormat("yyyy-MM-dd").parse(jsonNode.get("enddate").asText()).getTime()))
+                    .addParameter("uuid", jsonNode.get("uuid").asText())
                     .executeUpdate();
-        } catch (ParseException e) {
+        } catch (Exception e) {
             logger.error("LOG00420:", e);
         }
 /*
