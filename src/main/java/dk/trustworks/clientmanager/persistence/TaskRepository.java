@@ -33,22 +33,6 @@ public class TaskRepository extends GenericRepository {
             logger.error("LOG00430:", e);
         }
         return new ArrayList<>();
-        /*
-        List<Map<String, Object>> result = new ArrayList<>();
-        try {
-            Connection connection = database.getConnection();
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM task WHERE projectuuid LIKE ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            stmt.setString(1, projectUUID);
-            ResultSet resultSet = stmt.executeQuery();
-            result = getEntitiesFromResultSet(resultSet);
-            resultSet.close();
-            stmt.close();
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return result;
-        */
     }
 
     public List<Map<String, Object>> findByProjectUUIDOrderByNameAsc(String projectUUID) {
@@ -62,22 +46,6 @@ public class TaskRepository extends GenericRepository {
             logger.error("LOG00440:", e);
         }
         return new ArrayList<>();
-        /*
-        List<Map<String, Object>> result = new ArrayList<>();
-        try {
-            Connection connection = database.getConnection();
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM task WHERE projectuuid LIKE ? ORDER BY name ASC", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            stmt.setString(1, projectUUID);
-            ResultSet resultSet = stmt.executeQuery();
-            result = getEntitiesFromResultSet(resultSet);
-            resultSet.close();
-            stmt.close();
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return result;
-        */
     }
 
     public void create(JsonNode jsonNode) throws SQLException {
@@ -93,19 +61,6 @@ public class TaskRepository extends GenericRepository {
         } catch (Exception e) {
             logger.error("LOG00450:", e);
         }
-        /*
-        logger.debug("Create task: "+jsonNode);
-        testForNull(jsonNode, new String[]{"projectuuid"});
-        Connection connection = database.getConnection();
-        PreparedStatement stmt = connection.prepareStatement("INSERT INTO task (uuid, type, name, projectuuid) VALUES (?, ?, ?, ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-        stmt.setString(1, jsonNode.get("uuid").asText(UUID.randomUUID().toString()));
-        stmt.setString(2, jsonNode.get("type").asText("KONSULENT"));
-        stmt.setString(3, jsonNode.get("name").asText(""));
-        stmt.setString(4, jsonNode.get("projectuuid").asText());
-        stmt.executeUpdate();
-        stmt.close();
-        connection.close();
-        */
     }
 
     public void update(JsonNode jsonNode, String uuid) throws SQLException {
@@ -120,17 +75,5 @@ public class TaskRepository extends GenericRepository {
         } catch (Exception e) {
             logger.error("LOG00460:", e);
         }
-        /*
-
-        logger.debug("Update task: "+jsonNode);
-        Connection connection = database.getConnection();
-        PreparedStatement stmt = connection.prepareStatement("UPDATE task t SET t.type = ?, t.name = ? WHERE t.uuid LIKE ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-        stmt.setString(1, jsonNode.get("type").asText("KONSULENT"));
-        stmt.setString(2, jsonNode.get("name").asText(""));
-        stmt.setString(3, uuid);
-        stmt.executeUpdate();
-        stmt.close();
-        connection.close();
-        */
     }
 }
