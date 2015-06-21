@@ -1,6 +1,5 @@
 package dk.trustworks.clientmanager;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.trustworks.clientmanager.handlers.*;
 import dk.trustworks.clientmanager.service.*;
 import dk.trustworks.framework.persistence.Helper;
@@ -40,7 +39,6 @@ public class ClientApplication {
         try (InputStream in = Helper.class.getResourceAsStream("server.properties")) {
             properties.load(in);
         }
-        final ObjectMapper objectMapper = new ObjectMapper();
 
         ServiceRegistry serviceRegistry = ServiceRegistry.getInstance();
 
