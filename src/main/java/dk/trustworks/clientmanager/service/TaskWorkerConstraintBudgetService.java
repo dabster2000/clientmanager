@@ -37,8 +37,8 @@ public class TaskWorkerConstraintBudgetService extends DefaultLocalService {
         return taskWorkerConstraintBudgetRepository.findByMonthAndYear(month, year);
     }
 
-    public List<Map<String, Object>> findByTaskWorkerConstraintUUIDAndDate(Map<String, Deque<String>> queryParameters) {
-        logger.debug("TaskWorkerConstraintBudgetService.findByTaskWorkerConstraintUUIDAndDate");
+    public List<Map<String, Object>> findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(Map<String, Deque<String>> queryParameters) {
+        logger.debug("TaskWorkerConstraintBudgetService.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate");
         String taskworkerconstraintuuid = queryParameters.get("taskworkerconstraintuuid").getFirst();
         int month = Integer.parseInt(queryParameters.get("month").getFirst());
         int year = Integer.parseInt(queryParameters.get("year").getFirst());

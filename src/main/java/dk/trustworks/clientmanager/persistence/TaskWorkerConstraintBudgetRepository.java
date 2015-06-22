@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -66,9 +68,10 @@ public class TaskWorkerConstraintBudgetRepository extends GenericRepository {
     }
 
     public List<Map<String, Object>> findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(String taskWorkerConstraintUUID, int month, int year, Instant ldt) {
-        log.debug("TaskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUID");
-        log.debug("taskWorkerConstraintUUID = [" + taskWorkerConstraintUUID + "], ldt = [" + ldt + "]");
+        log.debug("TaskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate");
+        log.debug("taskWorkerConstraintUUID = [" + taskWorkerConstraintUUID + "], month = [" + month + "], year = [" + year + "], ldt = [" + ldt + "]");
         try (org.sql2o.Connection con = database.open()) {
+            if(taskWorkerConstraintUUID.equals("6af071fa-6a95-44e5-8634-9820e0887500")) System.out.println("time = " + LocalDateTime.from(ldt).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
             return getEntitiesFromMapSet(con.createQuery("" +
                     "select yt.month, yt.year, yt.created, yt.budget, yt.taskworkerconstraintuuid " +
                     "from taskworkerconstraintbudget yt " +
@@ -79,10 +82,10 @@ public class TaskWorkerConstraintBudgetRepository extends GenericRepository {
                     ") ss on yt.month = ss.month and yt.year = ss.year and yt.created = ss.created and yt.taskworkerconstraintuuid = ss.taskworkerconstraintuuid;")
                     .addParameter("month", month)
                     .addParameter("year", year)
-                    .addParameter("created", Timestamp.from(ldt))
+                    .addParameter("created", LocalDateTime.from(ldt).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
                     .addParameter("taskworkerconstraintuuid", taskWorkerConstraintUUID)
                     .executeAndFetchTable().asList());
-        } catch (Exception e) {
+        } catch (Exception e) { // Timestamp.from(ldt))
             log.error("LOG00490:", e);
         }
         return new ArrayList<>();
