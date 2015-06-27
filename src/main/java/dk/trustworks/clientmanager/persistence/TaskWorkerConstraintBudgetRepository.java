@@ -7,13 +7,9 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by hans on 17/03/15.
@@ -67,25 +63,24 @@ public class TaskWorkerConstraintBudgetRepository extends GenericRepository {
         return new ArrayList<>();
     }
 
-    public List<Map<String, Object>> findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(String taskWorkerConstraintUUID, int month, int year, Instant ldt) {
+    public List<Map<String, Object>> findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(String taskWorkerConstraintUUID, int month, int year, Date datetime) {
         log.debug("TaskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate");
-        log.debug("taskWorkerConstraintUUID = [" + taskWorkerConstraintUUID + "], month = [" + month + "], year = [" + year + "], ldt = [" + ldt + "]");
+        log.debug("taskWorkerConstraintUUID = [" + taskWorkerConstraintUUID + "], month = [" + month + "], year = [" + year + "], ldt = [" + datetime + "]");
         try (org.sql2o.Connection con = database.open()) {
-            if(taskWorkerConstraintUUID.equals("6af071fa-6a95-44e5-8634-9820e0887500")) System.out.println("time = " + LocalDateTime.from(ldt).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
             return getEntitiesFromMapSet(con.createQuery("" +
                     "select yt.month, yt.year, yt.created, yt.budget, yt.taskworkerconstraintuuid " +
                     "from taskworkerconstraintbudget yt " +
                     "inner join( " +
                     "select uuid, month, year, taskworkerconstraintuuid, max(created) created " +
-                    "from taskworkerconstraintbudget WHERE taskworkerconstraintuuid LIKE :taskworkerconstraintuuid AND created < :created AND month = :month AND year = :year" +
+                    "from taskworkerconstraintbudget WHERE taskworkerconstraintuuid LIKE :taskworkerconstraintuuid AND created < :created AND month = :month AND year = :year " +
                     "group by month, year " +
                     ") ss on yt.month = ss.month and yt.year = ss.year and yt.created = ss.created and yt.taskworkerconstraintuuid = ss.taskworkerconstraintuuid;")
+                    .addParameter("taskworkerconstraintuuid", taskWorkerConstraintUUID)
+                    .addParameter("created", new SimpleDateFormat("yyyy-MM-dd HH:mm").format(datetime))
                     .addParameter("month", month)
                     .addParameter("year", year)
-                    .addParameter("created", LocalDateTime.from(ldt).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
-                    .addParameter("taskworkerconstraintuuid", taskWorkerConstraintUUID)
                     .executeAndFetchTable().asList());
-        } catch (Exception e) { // Timestamp.from(ldt))
+        } catch (Exception e) {
             log.error("LOG00490:", e);
         }
         return new ArrayList<>();

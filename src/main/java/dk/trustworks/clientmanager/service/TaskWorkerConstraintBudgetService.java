@@ -8,7 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
-import java.time.Instant;
+import java.util.Date;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +42,8 @@ public class TaskWorkerConstraintBudgetService extends DefaultLocalService {
         String taskworkerconstraintuuid = queryParameters.get("taskworkerconstraintuuid").getFirst();
         int month = Integer.parseInt(queryParameters.get("month").getFirst());
         int year = Integer.parseInt(queryParameters.get("year").getFirst());
-        Instant instant = Instant.ofEpochMilli(Long.parseLong(queryParameters.get("datetime").getFirst()));
-        return taskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(taskworkerconstraintuuid, month, year, instant);
+        Date datetime = new Date(Long.parseLong(queryParameters.get("datetime").getFirst()));
+        return taskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(taskworkerconstraintuuid, month, year, datetime);
     }
 
     @Override
