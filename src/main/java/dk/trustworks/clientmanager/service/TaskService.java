@@ -41,7 +41,7 @@ public class TaskService extends DefaultLocalService {
 
     @Override
     public String getResourcePath() {
-        return "tasks";
+        return "task";
     }
 
     @Override
