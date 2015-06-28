@@ -34,7 +34,6 @@ public class ClientApplication {
 
     public ClientApplication(int port) throws Exception {
         log.info("ClientManager on port " + port);
-        Class.forName("org.mariadb.jdbc.Driver");
         Properties properties = new Properties();
         try (InputStream in = Helper.class.getResourceAsStream("server.properties")) {
             properties.load(in);
