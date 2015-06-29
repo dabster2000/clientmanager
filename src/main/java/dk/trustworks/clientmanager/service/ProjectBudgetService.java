@@ -80,45 +80,65 @@ public class ProjectBudgetService extends DefaultLocalService {
     public List<Map<String, Object>> findByUserAndYear(Map<String, Deque<String>> queryParameters) {
         log.debug("ProjectBudgetService.findByYear");
         log.debug("queryParameters = [" + queryParameters + "]");
-        long allTimer = System.currentTimeMillis();
-        int year = Integer.parseInt(queryParameters.get("year").getFirst());
-        String userUUID = queryParameters.get("useruuid").getFirst();
+        final int year = Integer.parseInt(queryParameters.get("year").getFirst());
+        final String userUUID = queryParameters.get("useruuid").getFirst();
         try {
-            List<Map<String, Object>> projectYearBudgets = new ArrayList<>();
-            long allWorkTimer = System.currentTimeMillis();
-            log.debug("Load all work: {}", (System.currentTimeMillis() - allWorkTimer));
-
-            long timer = System.currentTimeMillis();
-
-            List<Map<String, Object>> projectsAndTasksAndTaskWorkerConstraints = projectRepository.getAllEntities("project");
-            log.debug("projectsAndTasksAndTaskWorkerConstraints: {}", (System.currentTimeMillis() - timer));
-
-            StreamSupport.stream(projectsAndTasksAndTaskWorkerConstraints.spliterator(), true).map((project) -> {
-                Map<String, Object> budgetSummary = new HashMap<>();
-                budgetSummary.put("projectuuid", project.get("uuid"));
-                budgetSummary.put("projectname", project.get("name"));
-                budgetSummary.put("amount", new double[12]);
-                List<Map<String, Object>> tasks = taskRepository.findByProjectUUID((String) project.get("uuid"));
-                for (int month = 0; month < 12; month++) {
-                    for (Map<String, Object> task : tasks) {
-                        Map<String, Object> taskWorkerConstraint = taskWorkerConstraintRepository.findByTaskUUIDAndUserUUID((String) task.get("uuid"), userUUID);
-                        Calendar calendar = Calendar.getInstance();
-                        calendar.set(year, month, 1, 0, 0);
-                        if (year < 2015 || (year < 2016 && month < 6)) calendar = Calendar.getInstance();
-                        if (year >= Calendar.getInstance().get(Calendar.YEAR) && month > Calendar.getInstance().get(Calendar.MONTH))
-                            calendar = Calendar.getInstance();
-                        List<Map<String, Object>> budgets = taskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(taskWorkerConstraint.get("uuid").toString(), month, year, calendar.getTime());
-                        if (budgets.size() > 0) ((double[]) budgetSummary.get("amount"))[month] += (double) budgets.get(0).get("budget");
-                    }
-                }
-                return budgetSummary;
-            }).forEach(projectYearBudgets::add);
-            log.debug("Load all: {}", (System.currentTimeMillis() - allTimer));
-            return projectYearBudgets;
+            return getProjectYearBudgets(year, userUUID, true);
         } catch (Exception e) {
             log.error("LOG00840:", e);
         }
         return null;
+    }
+
+    public List<Map<String, Object>> findByUserAndYearAndHours(Map<String, Deque<String>> queryParameters) {
+        log.debug("ProjectBudgetService.findByYear");
+        log.debug("queryParameters = [" + queryParameters + "]");
+        final int year = Integer.parseInt(queryParameters.get("year").getFirst());
+        final String userUUID = queryParameters.get("useruuid").getFirst();
+        try {
+            return getProjectYearBudgets(year, userUUID, false);
+        } catch (Exception e) {
+            log.error("LOG00840:", e);
+        }
+        return null;
+    }
+
+    private List<Map<String, Object>> getProjectYearBudgets(int year, String userUUID, boolean useRate) {
+        long allTimer = System.currentTimeMillis();
+
+        List<Map<String, Object>> projectYearBudgets = new ArrayList<>();
+        long allWorkTimer = System.currentTimeMillis();
+        log.debug("Load all work: {}", (System.currentTimeMillis() - allWorkTimer));
+
+        long timer = System.currentTimeMillis();
+
+        List<Map<String, Object>> projectsAndTasksAndTaskWorkerConstraints = projectRepository.getAllEntities("project");
+        log.debug("projectsAndTasksAndTaskWorkerConstraints: {}", (System.currentTimeMillis() - timer));
+
+        StreamSupport.stream(projectsAndTasksAndTaskWorkerConstraints.spliterator(), true).map((project) -> {
+            Map<String, Object> budgetSummary = new HashMap<>();
+            budgetSummary.put("projectuuid", project.get("uuid"));
+            budgetSummary.put("projectname", project.get("name"));
+            budgetSummary.put("amount", new double[12]);
+            List<Map<String, Object>> tasks = taskRepository.findByProjectUUID((String) project.get("uuid"));
+            for (int month = 0; month < 12; month++) {
+                for (Map<String, Object> task : tasks) {
+                    Map<String, Object> taskWorkerConstraint = taskWorkerConstraintRepository.findByTaskUUIDAndUserUUID((String) task.get("uuid"), userUUID);
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.set(year, month, 1, 0, 0);
+                    if (year < 2015 || (year < 2016 && month < 6)) calendar = Calendar.getInstance();
+                    if (year >= Calendar.getInstance().get(Calendar.YEAR) && month > Calendar.getInstance().get(Calendar.MONTH)) calendar = Calendar.getInstance();
+                    List<Map<String, Object>> budgets = taskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(taskWorkerConstraint.get("uuid").toString(), month, year, calendar.getTime());
+                    if (budgets.size() > 0) {
+                        if(useRate) ((double[]) budgetSummary.get("amount"))[month] += (double) budgets.get(0).get("budget");
+                        else ((double[]) budgetSummary.get("amount"))[month] += ((double) budgets.get(0).get("budget") / (double) taskWorkerConstraint.get("price"));
+                    }
+                }
+            }
+            return budgetSummary;
+        }).forEach(projectYearBudgets::add);
+        log.debug("Load all: {}", (System.currentTimeMillis() - allTimer));
+        return projectYearBudgets;
     }
 
     @Override
