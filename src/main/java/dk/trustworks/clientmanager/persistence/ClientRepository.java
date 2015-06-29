@@ -66,9 +66,9 @@ public class ClientRepository extends GenericRepository {
         try (org.sql2o.Connection con = database.open()) {
             con.createQuery("UPDATE client SET active = :active, contactname = :contactname, name = :name WHERE uuid LIKE :uuid")
                     .addParameter("uuid", jsonNode.get("uuid").asText(UUID.randomUUID().toString()))
-                    .addParameter("active", true)
-                    .addParameter("contactname", jsonNode.get("contactname").asText(""))
-                    .addParameter("name", jsonNode.get("name").asText(""))
+                    .addParameter("active", jsonNode.get("active").asBoolean())
+                    .addParameter("contactname", jsonNode.get("contactname").asText())
+                    .addParameter("name", jsonNode.get("name").asText())
                     .executeUpdate();
         } catch (Exception e) {
             logger.error("LOG00340:", e);
