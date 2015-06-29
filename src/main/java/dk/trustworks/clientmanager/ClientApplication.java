@@ -61,6 +61,7 @@ public class ClientApplication {
                         .addPrefixPath("/api/tasks", new TaskHandler())
                         .addPrefixPath("/api/taskworkerconstraints", new TaskWorkerConstraintHandler())
                         .addPrefixPath("/api/taskworkerconstraintbudgets", new TaskWorkerConstraintBudgetHandler())
+                        .addPrefixPath("/api/projectbudgets", new ProjectBudgetHandler())
                         , Headers.SERVER_STRING, "U-tow"))
                         .setWorkerThreads(200)
                         .build()
