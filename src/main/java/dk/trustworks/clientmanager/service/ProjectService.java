@@ -27,6 +27,10 @@ public class ProjectService extends DefaultLocalService {
         return projectRepository.findByActiveTrueOrderByNameAsc();
     }
 
+    public List<Map<String, Object>> findByActiveFalseOrderByNameAsc(Map<String, Deque<String>> queryParameters) {
+        return projectRepository.findByActiveFalseOrderByNameAsc();
+    }
+
     public List<Map<String, Object>> findByClientUUID(Map<String, Deque<String>> queryParameters) {
         String clientUUID = queryParameters.get("clientuuid").getFirst();
         return projectRepository.findByClientUUID(clientUUID);

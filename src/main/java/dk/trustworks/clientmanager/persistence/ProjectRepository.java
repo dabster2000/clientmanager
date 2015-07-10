@@ -40,6 +40,16 @@ public class ProjectRepository extends GenericRepository {
         return new ArrayList<>();
     }
 
+    public List<Map<String, Object>> findByActiveFalseOrderByNameAsc() {
+        logger.debug("ProjectRepository.findByActiveFalseOrderByNameAsc");
+        try (org.sql2o.Connection con = database.open()) {
+            return getEntitiesFromMapSet(con.createQuery("SELECT * FROM project WHERE active = FALSE ORDER BY name ASC").executeAndFetchTable().asList());
+        } catch (Exception e) {
+            logger.error("LOG00870:", e);
+        }
+        return new ArrayList<>();
+    }
+
     public List<Map<String, Object>> findByClientUUID(String clientUUID) {
         logger.debug("ProjectRepository.findByClientUUID");
         logger.debug("clientUUID = [" + clientUUID + "]");
