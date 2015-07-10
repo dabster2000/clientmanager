@@ -60,8 +60,8 @@ public class ProjectBudgetService extends DefaultLocalService {
                             Calendar calendar = Calendar.getInstance();
                             calendar.set(year, month, 1, 0, 0);
                             if (year < 2015 || (year < 2016 && month < 6)) calendar = Calendar.getInstance();
-                            if (year >= Calendar.getInstance().get(Calendar.YEAR) && month > Calendar.getInstance().get(Calendar.MONTH))
-                                calendar = Calendar.getInstance();
+                            if (year > Calendar.getInstance().get(Calendar.YEAR)) calendar = Calendar.getInstance();
+                            if (year == Calendar.getInstance().get(Calendar.YEAR) && month >= Calendar.getInstance().get(Calendar.MONTH)) calendar = Calendar.getInstance();
                             List<Map<String, Object>> budgets = taskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(taskWorkerConstraint.get("uuid").toString(), month, year, calendar.getTime());
                             if (budgets.size() > 0) ((double[]) budgetSummary.get("amount"))[month] += (double) budgets.get(0).get("budget");
                         }
