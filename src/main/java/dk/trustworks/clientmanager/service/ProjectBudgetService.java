@@ -59,11 +59,27 @@ public class ProjectBudgetService extends DefaultLocalService {
                         for (Map<String, Object> taskWorkerConstraint : taskWorkerConstraintRepository.findByTaskUUID((String) task.get("uuid"))) {
                             Calendar calendar = Calendar.getInstance();
                             calendar.set(year, month, 1, 0, 0);
+
+                            calendar.roll(Calendar.MONTH, -2);
+                            calendar.set(Calendar.DAY_OF_MONTH, calendar.getMaximum(Calendar.DAY_OF_MONTH));
+                            if (year < 2015 || (year < 2016 && month < 7)) calendar = Calendar.getInstance();
+                            if (year > Calendar.getInstance().get(Calendar.YEAR)) calendar = Calendar.getInstance();
+                            if (year == Calendar.getInstance().get(Calendar.YEAR) && month >= Calendar.getInstance().get(Calendar.MONTH))
+                                calendar = Calendar.getInstance();
+
+                            /*
+                            Calendar calendar = Calendar.getInstance();
+                            calendar.set(year, month, 1, 0, 0);
                             if (year < 2015 || (year < 2016 && month < 6)) calendar = Calendar.getInstance();
                             if (year > Calendar.getInstance().get(Calendar.YEAR)) calendar = Calendar.getInstance();
-                            if (year == Calendar.getInstance().get(Calendar.YEAR) && month >= Calendar.getInstance().get(Calendar.MONTH)) calendar = Calendar.getInstance();
+                            if (year == Calendar.getInstance().get(Calendar.YEAR) && month >= Calendar.getInstance().get(Calendar.MONTH)) calendar = Calendar.getInstance();*/
                             List<Map<String, Object>> budgets = taskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(taskWorkerConstraint.get("uuid").toString(), month, year, calendar.getTime());
-                            if (budgets.size() > 0) ((double[]) budgetSummary.get("amount"))[month] += (double) budgets.get(0).get("budget");
+                            if (taskWorkerConstraint.get("uuid").equals("6af071fa-6a95-44e5-8634-9820e0887500") && month == 7) {
+                                System.out.println("calendar = " + calendar.getTime());
+                                System.out.println("budgets.get(\"budget\") = " + budgets.get(0).get("budget"));
+                            }
+                            if (budgets.size() > 0)
+                                ((double[]) budgetSummary.get("amount"))[month] += (double) budgets.get(0).get("budget");
                         }
                     }
                 }
@@ -126,14 +142,23 @@ public class ProjectBudgetService extends DefaultLocalService {
                     Map<String, Object> taskWorkerConstraint = taskWorkerConstraintRepository.findByTaskUUIDAndUserUUID((String) task.get("uuid"), userUUID);
                     Calendar calendar = Calendar.getInstance();
                     calendar.set(year, month, 1, 0, 0);
-                    calendar.set(year, month, calendar.getMaximum(Calendar.DAY_OF_MONTH), 0, 0);
+
+                    calendar.roll(Calendar.MONTH, false);
+                    calendar.set(Calendar.DAY_OF_MONTH, calendar.getMaximum(Calendar.DAY_OF_MONTH));
                     if (year < 2015 || (year < 2016 && month < 6)) calendar = Calendar.getInstance();
                     if (year > Calendar.getInstance().get(Calendar.YEAR)) calendar = Calendar.getInstance();
-                    if (year == Calendar.getInstance().get(Calendar.YEAR) && month >= Calendar.getInstance().get(Calendar.MONTH)) calendar = Calendar.getInstance();
+                    if (year == Calendar.getInstance().get(Calendar.YEAR) && month >= Calendar.getInstance().get(Calendar.MONTH))
+                        calendar = Calendar.getInstance();
                     List<Map<String, Object>> budgets = taskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(taskWorkerConstraint.get("uuid").toString(), month, year, calendar.getTime());
+                    if (taskWorkerConstraint.get("uuid").equals("6af071fa-6a95-44e5-8634-9820e0887500") && month == 7) {
+                        System.out.println("calendar = " + calendar.getTime());
+                        System.out.println("budgets.get(\"budget\") = " + budgets.get(0).get("budget"));
+                    }
                     if (budgets.size() > 0) {
-                        if(useRate) ((double[]) budgetSummary.get("amount"))[month] += (double) budgets.get(0).get("budget");
-                        else ((double[]) budgetSummary.get("amount"))[month] += ((double) budgets.get(0).get("budget") / (double) taskWorkerConstraint.get("price"));
+                        if (useRate)
+                            ((double[]) budgetSummary.get("amount"))[month] += (double) budgets.get(0).get("budget");
+                        else
+                            ((double[]) budgetSummary.get("amount"))[month] += ((double) budgets.get(0).get("budget") / (double) taskWorkerConstraint.get("price"));
                     }
                 }
             }

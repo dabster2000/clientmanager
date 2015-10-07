@@ -66,6 +66,9 @@ public class TaskWorkerConstraintBudgetRepository extends GenericRepository {
     public List<Map<String, Object>> findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate(String taskWorkerConstraintUUID, int month, int year, Date datetime) {
         log.debug("TaskWorkerConstraintBudgetRepository.findByTaskWorkerConstraintUUIDAndMonthAndYearAndDate");
         log.debug("taskWorkerConstraintUUID = [" + taskWorkerConstraintUUID + "], month = [" + month + "], year = [" + year + "], ldt = [" + datetime + "]");
+        if (taskWorkerConstraintUUID.equals("6af071fa-6a95-44e5-8634-9820e0887500") && month == 7) {
+            System.out.println("new SimpleDateFormat(\"yyyy-MM-dd HH:mm\").format(datetime) = " + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(datetime));
+        }
         try (org.sql2o.Connection con = database.open()) {
             return getEntitiesFromMapSet(con.createQuery("" +
                     "select yt.month, yt.year, yt.created, yt.budget, yt.taskworkerconstraintuuid " +

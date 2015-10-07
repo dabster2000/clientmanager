@@ -1,7 +1,14 @@
 package dk.trustworks.clientmanager;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
 import dk.trustworks.clientmanager.handlers.*;
+import dk.trustworks.clientmanager.persistence.*;
 import dk.trustworks.clientmanager.service.*;
+import dk.trustworks.distributed.model.*;
 import dk.trustworks.framework.persistence.Helper;
 import dk.trustworks.framework.service.ServiceRegistry;
 import io.undertow.Handlers;
@@ -19,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.xnio.Options;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -38,6 +46,8 @@ public class ClientApplication {
         try (InputStream in = Helper.class.getResourceAsStream("server.properties")) {
             properties.load(in);
         }
+
+        cacheValues();
 
         ServiceRegistry serviceRegistry = ServiceRegistry.getInstance();
 
@@ -68,6 +78,41 @@ public class ClientApplication {
                         .start();
 
         registerInZookeeper(properties.getProperty("zookeeper.host"), port);
+    }
+
+    private final void cacheValues() {
+        ObjectMapper mapper = new ObjectMapper();
+        HazelcastInstance hzInstance = Hazelcast.newHazelcastInstance();
+
+        IMap<String, Client> clients = hzInstance.getMap("clients");
+        for (Client entity : (List<Client>)mapper.convertValue(new ClientRepository().getAllEntities("client"), new TypeReference<List<Client>>() {})) {
+            clients.put(entity.uuid, entity);
+        }
+
+        IMap<String, Project> projects = hzInstance.getMap("projects");
+        projects.addIndex( "clientUUID", true );
+        for (Project project : (List<Project>)mapper.convertValue(new ProjectRepository().getAllEntities("project"), new TypeReference<List<Project>>() {})) {
+            projects.put(project.getUUID(), project);
+        }
+
+        IMap<String, Task> tasks = hzInstance.getMap("tasks");
+        tasks.addIndex( "projectUUID", true );
+        for (Task task : (List<Task>)mapper.convertValue(new TaskRepository().getAllEntities("task"), new TypeReference<List<Task>>() {})) {
+            tasks.put(task.getUUID(), task);
+        }
+
+        IMap<String, TaskWorkerConstraint> taskWorkerConstraints = hzInstance.getMap("taskworkerconstraints");
+        taskWorkerConstraints.addIndex("taskUUID", true);
+        for (TaskWorkerConstraint taskWorkerConstraint : (List<TaskWorkerConstraint>)mapper.convertValue(new TaskWorkerConstraintRepository().getAllEntities("taskworkerconstraint"), new TypeReference<List<TaskWorkerConstraint>>() {})) {
+            taskWorkerConstraints.put(taskWorkerConstraint.getUUID(), taskWorkerConstraint);
+        }
+
+        IMap<String, TaskWorkerConstraintBudget> taskWorkerConstraintBudgets = hzInstance.getMap("taskworkerconstraintbudgets");
+        taskWorkerConstraintBudgets.addIndex( "taskWorkerConstraintUUID", true );
+        for (TaskWorkerConstraintBudget taskWorkerConstraintBudget : (List<TaskWorkerConstraintBudget>)mapper.convertValue(new TaskWorkerConstraintBudgetRepository().getAllEntities("taskworkerconstraintbudget"), new TypeReference<List<TaskWorkerConstraintBudget>>() {})) {
+            taskWorkerConstraintBudgets.put(taskWorkerConstraintBudget.getUuid(), taskWorkerConstraintBudget);
+        }
+
     }
 
     private static void registerInZookeeper(String zooHost, int port) throws Exception {
