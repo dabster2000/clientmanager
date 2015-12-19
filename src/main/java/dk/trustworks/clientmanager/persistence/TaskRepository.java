@@ -52,7 +52,8 @@ public class TaskRepository extends GenericRepository {
         logger.debug("TaskRepository.create");
         logger.debug("jsonNode = [" + jsonNode + "]");
         try (org.sql2o.Connection con = database.open()) {
-            con.createQuery("INSERT INTO task (uuid, type, name, projectuuid) VALUES (:uuid, :type, :name, :projectuuid)")
+            con.createQuery("INSERT INTO task (uuid, type, na" +
+                    "me, projectuuid) VALUES (:uuid, :type, :name, :projectuuid)")
                     .addParameter("uuid", jsonNode.get("uuid").asText(UUID.randomUUID().toString()))
                     .addParameter("type", jsonNode.get("type").asText("KONSULENT"))
                     .addParameter("name", jsonNode.get("name").asText(""))

@@ -47,7 +47,7 @@ public class ClientApplication {
             properties.load(in);
         }
 
-        cacheValues();
+        //cacheValues();
 
         ServiceRegistry serviceRegistry = ServiceRegistry.getInstance();
 
